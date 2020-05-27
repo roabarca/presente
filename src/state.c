@@ -1,4 +1,6 @@
 #include "state.h"
+#include "file.h"
+#include "raylib.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -24,10 +26,11 @@ state *state_new(){
     return sta;
 }
 
-void state_update(level *lvl, state *sta){
+void state_update(level *lvl, state *sta, int *score){ //añadimos el parametro score
 
     // == Update player speed according to buttons
     // (mov_x,mov_y) is a vector that represents the position of the analog control
+
     float mov_x = 0;
     float mov_y = 0;
     mov_x += sta->button_state[0];
@@ -92,7 +95,10 @@ void state_update(level *lvl, state *sta){
     for(int i=0;i<sta->n_enemies;i++){
         entity_physics(lvl,&sta->enemies[i].ent);
         // Kill enemy if it has less than 0 HP
-        if(sta->enemies[i].ent.hp<=0) sta->enemies[i].ent.dead = 1;
+        if(sta->enemies[i].ent.hp<=0){
+            sta->enemies[i].ent.dead = 1;
+            *score += sta->enemies[i].ent.reward; // Le sumamos a score la recompensa del enemigo
+        }
     }
     // Update bullets
     for(int i=0;i<sta->n_bullets;i++){
@@ -129,6 +135,13 @@ void state_update(level *lvl, state *sta){
         sta->n_enemies = new_n_enemies;
     }
 
+    //Funciones solo para probar la muerte y la victoria, no funcionales
+    if (IsKeyPressed(KEY_F1)){
+        sta->pla.ent.dead = 1;
+    }
+    if (IsKeyPressed(KEY_F2)){
+        sta->n_enemies = 0;
+    }
 }
 
 void state_populate_random(level *lvl, state *sta, int n_enemies){
@@ -157,13 +170,15 @@ void state_populate_random(level *lvl, state *sta, int n_enemies){
                     new_enemy->kind   = BRUTE;
                     new_enemy->ent.hp = BRUTE_HP;
                     new_enemy->ent.rad = BRUTE_RAD;
+                    new_enemy->ent.reward = BRUTE_REWARD; //Recompensa
                 }else{
                     new_enemy->kind   = MINION;
                     new_enemy->ent.hp = MINION_HP;
                     new_enemy->ent.rad = MINION_RAD;
+                    new_enemy->ent.reward = MINION_REWARD; //Recompensa
                 }
-                // Break while(1) as the operation was successful
-                break;
+            // Break while(1) as the operation was successful
+            break;
             }
         }
     }
